@@ -1,0 +1,312 @@
+//@version=5
+indicator('SMA Forecast ZONES', overlay=true)
+
+swith_add_0 = input(defval=false, title='Синхронизация MA_1 с таймфреймом графика', inline = "0")
+swith_add = input(defval=true, title='MA_1', inline = "FIRST")
+level_add = input(defval=true, title='Метки', inline = "FIRST")
+symbol = input.symbol("BINANCE:BTCUSDT", "", inline = "FIRST")
+timeframe = swith_add_0 == false ? input.timeframe(defval='240', title='', inline = "FIRST", confirm=true) : na
+
+
+
+
+incompletecandles = input(true, title='Include current unclosed current candle')
+type = 'SMA'
+forecasttype = input.string(defval='flat', options=['flat', 'linreg'], title='MA Forecast Type (flat assumes prices stay the same / linreg does n period LR forecast)')
+linreglen = input(3, title='# of candles to use in linear regression')
+
+bar = incompletecandles ? 0 : 1
+
+src_in = input(close, title='Source')
+
+src = src_in[bar]
+
+matype(_symbol, _timeframe, _type, _src, _len) =>
+    request.security(_symbol, _timeframe, _type == 'SMA' ? ta.sma(_src, _len) : na, lookahead=barmerge.lookahead_on)
+    
+forecast(_symbol, _timeframe, _forecasttype, _src, _flen, _lrlen) =>
+    request.security(_symbol, _timeframe, _forecasttype == 'flat' ? _src : _forecasttype == 'linreg' ? ta.linreg(_src, _lrlen, _flen) : na)
+
+forecast1 = forecast(symbol, timeframe, forecasttype, src, 1, linreglen)
+forecast2 = forecast(symbol, timeframe, forecasttype, src, 2, linreglen)
+forecast3 = forecast(symbol, timeframe, forecasttype, src, 3, linreglen)
+
+show8 = input(true, title='', inline = "FAST")
+len = input(8, title='', inline = "FAST")
+col8 = color.new(#FFFF00, 0)
+
+show20 = input(true, title='', inline = "FAST")
+len20 = input(20, title='', inline = "FAST")
+col20 = color.new(#FF00FF, 0)
+
+show50 = input(true, title='', inline = "FAST")
+len50 = input(50, title='', inline = "FAST")
+col50 = color.new(#87CEFA, 0)
+
+show100 = input(true, title='', inline = "MEDIUM")
+len100 = input(100, title='', inline = "MEDIUM")
+col100 = color.new(#FF6800, 0)
+
+show200 = input(true, title='', inline = "MEDIUM")
+len200 = input(200, title='', inline = "MEDIUM")
+col200 = color.new(#FF2400, 0)
+
+show400 = input(true, title='', inline = "MEDIUM")
+len400 = input(400, title='', inline = "MEDIUM")
+col400 = color.new(#F8F8FF, 0)
+
+show800 = input(true, title='', inline = "SLOW")
+len800 = input(800, title='', inline = "SLOW")
+col800 = color.new(#007CAD, 0)
+
+show1200 = input(true, title='', inline = "SLOW")
+len1200 = input(1200, title='', inline = "SLOW")
+col1200 = color.new(#76FF7A, 0)
+
+show1600 = input(true, title='', inline = "SLOW")
+len1600 = input(1600, title='', inline = "SLOW")
+col1600 = color.new(#007D34, 0)
+
+ma8 = matype(symbol, timeframe, type, src, len)
+ma20 = matype(symbol, timeframe, type, src, len20)
+ma50 = matype(symbol, timeframe, type, src, len50)
+ma100 = matype(symbol, timeframe, type, src, len100)
+ma200 = matype(symbol, timeframe, type, src, len200)
+ma400 = matype(symbol, timeframe, type, src, len400)
+ma800 = matype(symbol, timeframe, type, src, len800)
+ma1200 = matype(symbol, timeframe, type, src, len1200)
+ma1600 = matype(symbol, timeframe, type, src, len1600)
+
+//FORECAST
+
+matype_1 = matype(symbol, timeframe, type, src, len - 1)
+ma8forecast1 = show8 ? (matype_1 * (len - 1) + forecast1) / len : na
+matype_2 = matype(symbol, timeframe, type, src, len - 2)
+ma8forecast2 = show8 ? (matype_2 * (len - 2) + forecast1 + forecast2) / len : na
+matype_3 = matype(symbol, timeframe, type, src, len - 3)
+ma8forecast3 = show8 ? (matype_3 * (len - 3) + forecast1 + forecast2 + forecast3) / len : na
+
+matype__4 = matype(symbol, timeframe, type, src, len20 - 1)
+ma20forecast1 = show20 ? (matype__4 * (len20 - 1) + forecast1) / len20 : na
+matype__5 = matype(symbol, timeframe, type, src, len20 - 2)
+ma20forecast2 = show20 ? (matype__5 * (len20 - 2) + forecast1 + forecast2) / len20 : na
+matype__6 = matype(symbol, timeframe, type, src, len20 - 3)
+ma20forecast3 = show20 ? (matype__6 * (len20 - 3) + forecast1 + forecast2 + forecast3) / len20 : na
+
+matype__7 = matype(symbol, timeframe, type, src, len50 - 1)
+ma50forecast1 = show50 ? (matype__7 * (len50 - 1) + forecast1) / len50 : na
+matype__8 = matype(symbol, timeframe, type, src, len50 - 2)
+ma50forecast2 = show50 ? (matype__8 * (len50 - 2) + forecast1 + forecast2) / len50 : na
+matype__9 = matype(symbol, timeframe, type, src, len50 - 3)
+ma50forecast3 = show50 ? (matype__9 * (len50 - 3) + forecast1 + forecast2 + forecast3) / len50 : na
+
+matype__10 = matype(symbol, timeframe, type, src, len100 - 1)
+ma100forecast1 = show100 ? (matype__10 * (len100 - 1) + forecast1) / len100 : na
+matype__11 = matype(symbol, timeframe, type, src, len100 - 2)
+ma100forecast2 = show100 ? (matype__11 * (len100 - 2) + forecast1 + forecast2) / len100 : na
+matype__12 = matype(symbol, timeframe, type, src, len100 - 3)
+ma100forecast3 = show100 ? (matype__12 * (len100 - 3) + forecast1 + forecast2 + forecast3) / len100 : na
+
+matype__13 = matype(symbol, timeframe, type, src, len200 - 1)
+ma200forecast1 = show200 ? (matype__13 * (len200 - 1) + forecast1) / len200 : na
+matype__14 = matype(symbol, timeframe, type, src, len200 - 2)
+ma200forecast2 = show200 ? (matype__14 * (len200 - 2) + forecast1 + forecast2) / len200 : na
+matype__15 = matype(symbol, timeframe, type, src, len200 - 3)
+ma200forecast3 = show200 ? (matype__15 * (len200 - 3) + forecast1 + forecast2 + forecast3) / len200 : na
+
+matype__16 = matype(symbol, timeframe, type, src, len400 - 1)
+ma400forecast1 = show400 ? (matype__16 * (len400 - 1) + forecast1) / len400 : na
+matype__17 = matype(symbol, timeframe, type, src, len400 - 2)
+ma400forecast2 = show400 ? (matype__17 * (len400 - 2) + forecast1 + forecast2) / len400 : na
+matype__18 = matype(symbol, timeframe, type, src, len400 - 3)
+ma400forecast3 = show400 ? (matype__18 * (len400 - 3) + forecast1 + forecast2 + forecast3) / len400 : na
+
+matype__19 = matype(symbol, timeframe, type, src, len800 - 1)
+ma800forecast1 = show800 ? (matype__19 * (len800 - 1) + forecast1) / len800 : na
+matype__20 = matype(symbol, timeframe, type, src, len800 - 2)
+ma800forecast2 = show800 ? (matype__20 * (len800 - 2) + forecast1 + forecast2) / len800 : na
+matype__21 = matype(symbol, timeframe, type, src, len800 - 3)
+ma800forecast3 = show800 ? (matype__21 * (len800 - 3) + forecast1 + forecast2 + forecast3) / len800 : na
+
+matype__22 = matype(symbol, timeframe, type, src, len1200 - 1)
+ma1200forecast1 = show1200 ? (matype__22 * (len1200 - 1) + forecast1) / len1200 : na
+matype__23 = matype(symbol, timeframe, type, src, len1200 - 2)
+ma1200forecast2 = show1200 ? (matype__23 * (len1200 - 2) + forecast1 + forecast2) / len1200 : na
+matype__24 = matype(symbol, timeframe, type, src, len1200 - 3)
+ma1200forecast3 = show1200 ? (matype__24 * (len1200 - 3) + forecast1 + forecast2 + forecast3) / len1200 : na
+
+matype__25 = matype(symbol, timeframe, type, src, len1600 - 1)
+ma1600forecast1 = show1600 ? (matype__25 * (len1600 - 1) + forecast1) / len1600 : na
+matype__26 = matype(symbol, timeframe, type, src, len1600 - 2)
+ma1600forecast2 = show1600 ? (matype__26 * (len1600 - 2) + forecast1 + forecast2) / len1600 : na
+matype__27 = matype(symbol, timeframe, type, src, len1600 - 3)
+ma1600forecast3 = show1600 ? (matype__27 * (len1600 - 3) + forecast1 + forecast2 + forecast3) / len1600 : na
+
+
+
+plot(show8 ? ma8 : na, color=col8, linewidth=1, offset=-1 * bar, title='8 MA')
+plot(show20 ? ma20 : na, color=col20, linewidth=1, offset=-1 * bar, title='20 MA')
+plot(show50 ? ma50 : na, color=col50, linewidth=1, offset=-1 * bar, title='50 MA')
+plot(show100 ? ma100 : na, color=col100, linewidth=1, offset=-1 * bar, title='100 MA')
+plot(show200 ? ma200 : na, color=col200, linewidth=1, offset=-1 * bar, title='200 MA')
+plot(show400 ? ma400 : na, color=col400, linewidth=1, offset=-1 * bar, title='400 MA')
+
+plot(show800 ? ma800 : na, color=col800, linewidth=1, offset=-1 * bar, title='800 MA')
+plot(show1200 ? ma1200 : na, color=col1200, linewidth=1, offset=-1 * bar, title='1200 MA')
+plot(show1600 ? ma1600 : na, color=col1600, linewidth=1, offset=-1 * bar, title='1600 MA')
+
+plot(ma8forecast1, color=col8, linewidth=1, style=plot.style_circles, title='8 MA Forecast 1', offset=1 - bar, show_last=1)
+plot(show8 ? ma8forecast2 : na, color=col8, linewidth=1, style=plot.style_circles, title='8 MA Forecast 2', offset=2 - bar, show_last=1)
+plot(show8 ? ma8forecast3 : na, color=col8, linewidth=1, style=plot.style_circles, title='8 MA Forecast 3', offset=3 - bar, show_last=1)
+
+plot(show20 ? ma20forecast1 : na, color=col20, linewidth=1, style=plot.style_circles, title='20 MA Forecast 1', offset=1 - bar, show_last=1)
+plot(show20 ? ma20forecast2 : na, color=col20, linewidth=1, style=plot.style_circles, title='20 MA Forecast 2', offset=2 - bar, show_last=1)
+plot(show20 ? ma20forecast3 : na, color=col20, linewidth=1, style=plot.style_circles, title='20 MA Forecast 3', offset=3 - bar, show_last=1)
+
+plot(show50 ? ma50forecast1 : na, color=col50, linewidth=1, style=plot.style_circles, title='50 MA Forecast 1', offset=1 - bar, show_last=1)
+plot(show50 ? ma50forecast2 : na, color=col50, linewidth=1, style=plot.style_circles, title='50 MA Forecast 2', offset=2 - bar, show_last=1)
+plot(show50 ? ma50forecast3 : na, color=col50, linewidth=1, style=plot.style_circles, title='50 MA Forecast 3', offset=3 - bar, show_last=1)
+
+plot(show100 ? ma100forecast1 : na, color=col100, linewidth=1, style=plot.style_circles, title='100 MA Forecast 1', offset=1 - bar, show_last=1)
+plot(show100 ? ma100forecast2 : na, color=col100, linewidth=1, style=plot.style_circles, title='100 MA Forecast 2', offset=2 - bar, show_last=1)
+plot(show100 ? ma100forecast3 : na, color=col100, linewidth=1, style=plot.style_circles, title='100 MA Forecast 3', offset=3 - bar, show_last=1)
+
+plot(show200 ? ma200forecast1 : na, color=col200, linewidth=1, style=plot.style_circles, title='200 MA Forecast 1', offset=1 - bar, show_last=1)
+plot(show200 ? ma200forecast2 : na, color=col200, linewidth=1, style=plot.style_circles, title='200 MA Forecast 2', offset=2 - bar, show_last=1)
+plot(show200 ? ma200forecast3 : na, color=col200, linewidth=1, style=plot.style_circles, title='200 MA Forecast 3', offset=3 - bar, show_last=1)
+
+plot(show400 ? ma400forecast1 : na, color=col400, linewidth=1, style=plot.style_circles, title='400 MA Forecast 1', offset=1 - bar, show_last=1)
+plot(show400 ? ma400forecast2 : na, color=col400, linewidth=1, style=plot.style_circles, title='400 MA Forecast 2', offset=2 - bar, show_last=1)
+plot(show400 ? ma400forecast3 : na, color=col400, linewidth=1, style=plot.style_circles, title='400 MA Forecast 3', offset=3 - bar, show_last=1)
+
+plot(show800 ? ma800forecast1 : na, color=col800, linewidth=1, style=plot.style_circles, title='800 MA Forecast 1', offset=1 - bar, show_last=1)
+plot(show800 ? ma800forecast2 : na, color=col800, linewidth=1, style=plot.style_circles, title='800 MA Forecast 2', offset=2 - bar, show_last=1)
+plot(show800 ? ma800forecast3 : na, color=col800, linewidth=1, style=plot.style_circles, title='800 MA Forecast 3', offset=3 - bar, show_last=1)
+
+plot(show1200 ? ma1200forecast1 : na, color=col1200, linewidth=1, style=plot.style_circles, title='1200 MA Forecast 1', offset=1 - bar, show_last=1)
+plot(show1200 ? ma1200forecast2 : na, color=col1200, linewidth=1, style=plot.style_circles, title='1200 MA Forecast 2', offset=2 - bar, show_last=1)
+plot(show1200 ? ma1200forecast3 : na, color=col1200, linewidth=1, style=plot.style_circles, title='1200 MA Forecast 3', offset=3 - bar, show_last=1)
+
+plot(show1600 ? ma1600forecast1 : na, color=col1600, linewidth=1, style=plot.style_circles, title='1600 MA Forecast 1', offset=1 - bar, show_last=1)
+plot(show1600 ? ma1600forecast2 : na, color=col1600, linewidth=1, style=plot.style_circles, title='1600 MA Forecast 2', offset=2 - bar, show_last=1)
+plot(show1600 ? ma1600forecast3 : na, color=col1600, linewidth=1, style=plot.style_circles, title='1600 MA Forecast 3', offset=3 - bar, show_last=1)
+
+    //MA LINE TIMEFRAME
+
+// swith_add_1 = input(defval=true, title='', inline = "Mounth")
+// symbol_1 = swith_add_1 == true ? input.symbol("BINANCE:BTCUSDT", "", inline = "Mounth") : na
+// timeframe_1 = swith_add_1 == true ? input.timeframe('M', "", options=['D', 'W', 'M'], inline = "Mounth") : na
+
+// swith_add_2 = input(defval=true, title='', inline = "Week")
+// symbol_2 = swith_add_2 == true ? input.symbol("BINANCE:BTCUSDT", "", inline = "Week") : na
+// timeframe_2 = swith_add_2 == true ? input.timeframe('W', "", options=['D', 'W', 'M'], inline = "Week") : na
+
+// swith_add_3 = input(defval=true, title='', inline = "Day")
+// symbol_3 = swith_add_3 == true ? input.symbol("BINANCE:BTCUSDT", "", inline = "Day") : na
+// timeframe_3 = swith_add_3 == true ? input.timeframe('D', "", options=['D', 'W', 'M'], inline = "Day") : na
+
+// f_secureSecurity(_symbol, _timeframe, _len) =>
+//     request.security(_symbol, _timeframe, ta.sma(close, _len), lookahead=barmerge.lookahead_on)
+
+// ma8_m = f_secureSecurity(symbol_1, timeframe_1, len)
+// ma20_m = f_secureSecurity(symbol_1, timeframe_1, len20)
+// ma50_m = f_secureSecurity(symbol_1, timeframe_1, len50)
+// ma100_m = f_secureSecurity(symbol_1, timeframe_1, len100)
+// ma200_m = f_secureSecurity(symbol_1, timeframe_1, len200)
+// ma400_m = f_secureSecurity(symbol_1, timeframe_1, len400)
+// ma800_m = f_secureSecurity(symbol_1, timeframe_1, len800)
+// ma1200_m = f_secureSecurity(symbol_1, timeframe_1, len1200)
+// ma1600_m = f_secureSecurity(symbol_1, timeframe_1, len1600)
+
+// ma8_w = f_secureSecurity(symbol_2, timeframe_2, len)
+// ma20_w = f_secureSecurity(symbol_2, timeframe_2, len20)
+// ma50_w = f_secureSecurity(symbol_2, timeframe_2, len50)
+// ma100_w = f_secureSecurity(symbol_2, timeframe_2, len100)
+// ma200_w = f_secureSecurity(symbol_2, timeframe_2, len200)
+// ma400_w = f_secureSecurity(symbol_2, timeframe_2, len400)
+// ma800_w = f_secureSecurity(symbol_2, timeframe_2, len800)
+// ma1200_w = f_secureSecurity(symbol_2, timeframe_2, len1200)
+// ma1600_w = f_secureSecurity(symbol_2, timeframe_2, len1200)
+
+// ma8_d = f_secureSecurity(symbol_3, timeframe_3, len)
+// ma20_d = f_secureSecurity(symbol_3, timeframe_3, len20)
+// ma50_d = f_secureSecurity(symbol_3, timeframe_3, len50)
+// ma100_d = f_secureSecurity(symbol_3, timeframe_3, len100)
+// ma200_d = f_secureSecurity(symbol_3, timeframe_3, len200)
+// ma400_d = f_secureSecurity(symbol_3, timeframe_3, len400)
+// ma800_d = f_secureSecurity(symbol_3, timeframe_3, len800)
+// ma1200_d = f_secureSecurity(symbol_3, timeframe_3, len1200)
+// ma1600_d = f_secureSecurity(symbol_3, timeframe_3, len1600)
+
+//plot( ma20_m)
+
+// prices = input(true, "Show Prices")
+// levels = input(true, "Show Levels", inline = "Levels")
+// labelsPosition = input.string("Right", "Labels Position", options = ["Left", "Right"])
+
+// _draw_label(value, txt, txtColor, timeframe) =>
+//     n = timeframe == "M" ? 6 : timeframe == "W" ? 4 : timeframe == "D" ? 2 : 1
+//     x = labelsPosition == "Left" ? bar_index : bar_index -2 + n
+//     labelStyle = labelsPosition == "Left" ? label.style_label_right : label.style_label_left
+//     align = labelsPosition == "Left" ? text.align_right : text.align_left
+//     labelsAlignStrLeft = + txt + '\n ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏ \n'
+//     labelsAlignStrRight = '       ' + txt + '\n ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏  ‏ \n'
+//     labelsAlignStr = labelsPosition == "Left" ? labelsAlignStrLeft : labelsAlignStrRight
+//     var id = label.new(x=x, y=value, text=labelsAlignStr, textcolor=txtColor, style=labelStyle, textalign=align, color=#00000000)
+//     label.set_xy(id, x, value)
+//     label.set_text(id, labelsAlignStr)
+//     label.set_textcolor(id, txtColor)
+
+// _wrap(txt, timeframe, _len) =>
+//     + timeframe + str.tostring(_len) + ": " + str.tostring(txt, "#.##")
+
+// _label_txt(value, timeframe, _len) =>
+//     prices ? _wrap(value, timeframe, _len) : ""
+    
+// _draw_line(value, col, timeframe, width_t) =>
+//     var id = line.new(bar_index, value, bar_index, value, color=col, width=width_t, extend=extend.none)
+//     if value > 0
+//         n = timeframe == "M" ? 6 : timeframe == "W" ? 4 : timeframe == "D" ? 2 : 1
+//         line.set_xy1(id, bar_index, value)
+//         line.set_xy2(id, bar_index + n, value)  
+// 	id  
+	
+// processLevel(value, colorL, timeframe, _len, lineIdOther) =>
+//     _draw_label(value, _label_txt(value, timeframe, _len), colorL, timeframe)
+//     if value > 0
+//         width_t = timeframe == "M" ? 6 : timeframe == "W" ? 5 : timeframe == "D" ? 4 : 1
+// 		lineId = _draw_line(value, colorL, timeframe, width_t)
+		
+//     else
+// 		lineIdOther
+
+// lineId0 = processLevel(ma8_m, col8, timeframe_1, len, line(na))
+// lineId1 = processLevel(ma20_m, col20, timeframe_1, len20, lineId0)
+// lineId2 = processLevel(ma50_m, col50, timeframe_1, len50, lineId1)
+// lineId3 = processLevel(ma100_m, col100, timeframe_1, len100, lineId2)
+// lineId4 = processLevel(ma200_m, col200, timeframe_1, len200, lineId3)
+// lineId5 = processLevel(ma400_m, col400, timeframe_1, len400, lineId4)
+// lineId6 = processLevel(ma800_m, col800, timeframe_1, len800, lineId5)
+// lineId7 = processLevel(ma1200_m, col1200, timeframe_1, len1200, lineId6)
+// lineId8 = processLevel(ma1600_m, col1600, timeframe_1, len1600, lineId7)
+
+// _lineId0 = processLevel(ma8_w, col8, timeframe_2, len, line(na))
+// _lineId1 = processLevel(ma20_w, col20, timeframe_2, len20, lineId0)
+// _lineId2 = processLevel(ma50_w, col50, timeframe_2, len50, lineId1)
+// _lineId3 = processLevel(ma100_w, col100, timeframe_2, len100, lineId2)
+// _lineId4 = processLevel(ma200_w, col200, timeframe_2, len200, lineId3)
+// _lineId5 = processLevel(ma400_w, col400, timeframe_2, len400, lineId4)
+// _lineId6 = processLevel(ma800_w, col800, timeframe_2, len800, lineId5)
+// _lineId7 = processLevel(ma1200_w, col1200, timeframe_2, len1200, lineId6)
+// _lineId8 = processLevel(ma1600_w, col1600, timeframe_2, len1600, lineId7)
+
+// __lineId0 = processLevel(ma8_d, col8, timeframe_3, len, line(na))
+// __lineId1 = processLevel(ma20_d, col20, timeframe_3, len20, lineId0)
+// __lineId2 = processLevel(ma50_d, col50, timeframe_3, len50, lineId1)
+// __lineId3 = processLevel(ma100_d, col100, timeframe_3, len100, lineId2)
+// __lineId4 = processLevel(ma200_d, col200, timeframe_3, len200, lineId3)
+// __lineId5 = processLevel(ma400_d, col400, timeframe_3, len400, lineId4)
+// __lineId6 = processLevel(ma800_d, col800, timeframe_3, len800, lineId5)
+// __lineId7 = processLevel(ma1200_d, col1200, timeframe_3, len1200, lineId6)
+// __lineId8 = processLevel(ma1600_d, col1600, timeframe_3, len1600, lineId7)
+	
